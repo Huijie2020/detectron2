@@ -13,7 +13,7 @@ from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultTrainer, default_argument_parser, default_setup, launch
 from detectron2.evaluation import COCOEvaluator
-
+from detectron2.data.datasets import register_coco_instances
 from tridentnet import add_tridentnet_config
 
 
@@ -29,6 +29,12 @@ def setup(args):
     """
     Create configs and perform basic setups.
     """
+    register_coco_instances("ued_trainval", {},
+                            "/home/pengyue/Documents/2020Project/SmallObjectDetection/detectron2/datasets/ued/annotations_json/trainval.json",
+                            "/home/pengyue/Documents/2020Project/SmallObjectDetection/detectron2/datasets/ued/trainval")
+    register_coco_instances("ued_test", {},
+                            "/home/pengyue/Documents/2020Project/SmallObjectDetection/detectron2/datasets/ued/annotations_json/test.json",
+                            "/home/pengyue/Documents/2020Project/SmallObjectDetection/detectron2/datasets/ued/testbackground")
     cfg = get_cfg()
     add_tridentnet_config(cfg)
     cfg.merge_from_file(args.config_file)
