@@ -345,7 +345,7 @@ class BasicStem(CNNBlockBase):
             in_channels,
             out_channels,
             kernel_size=7,
-            stride=2,
+            stride=1,
             padding=3,
             bias=False,
             norm=get_norm(norm, out_channels),
