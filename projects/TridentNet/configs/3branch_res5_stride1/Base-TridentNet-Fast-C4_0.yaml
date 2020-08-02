@@ -17,6 +17,7 @@ MODEL:
     BRANCH_DILATIONS: [1, 2, 3]
     TEST_BRANCH_IDX: 0
     TRIDENT_STAGE: "res4"
+  WEIGHTS: "modelzoo/R-50-GN.pkl"
 DATASETS:
 #  TRAIN: ("coco_2017_train",)
 #  TEST: ("coco_2017_val",)
@@ -24,7 +25,7 @@ DATASETS:
   TEST: ("ued_test",)
 SOLVER:
   IMS_PER_BATCH: 2
-  BASE_LR: 0.0001
+  BASE_LR: 0.02
   STEPS: (60000, 80000)
   MAX_ITER: 90000
 INPUT:
