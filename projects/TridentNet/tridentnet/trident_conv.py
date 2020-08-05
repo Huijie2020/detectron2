@@ -70,9 +70,35 @@ class TridentConv(nn.Module):
             return [_NewEmptyTensorOp.apply(input, output_shape) for input in inputs]
 
         if self.training or self.test_branch_idx == -1:
+            # outputs = [
+            #     F.conv2d(input, self.weight, self.bias, self.stride, padding, dilation, self.groups)
+            #     for input, dilation, padding in zip(inputs, self.dilations, self.paddings)
+            # ]
+            outputs = []
+            for input, dilation, padding in zip(inputs, self.dilations, self.paddings):
+                if dilation == (0.5, 0.5):  ## add dilation 0.5
+                    stride = 2
+                    padding = (1, 1)
+                    dilation = 1
+                    input = F.interpolate(input, scale_factor=2)  #### May need parameter
+                    outputs.append(F.conv2d(input, self.weight, self.bias, stride, padding, dilation, self.groups))
+                else:
+                    outputs.append(F.conv2d(input, self.weight, self.bias, self.stride, padding, dilation, self.groups))
+        elif self.test_branch_idx == 0:
+            stride = 2
+            padding = (1, 1)
+            dilation = 1
+            output = F.interpolate(inputs[0], scale_factor=2)
             outputs = [
-                F.conv2d(input, self.weight, self.bias, self.stride, padding, dilation, self.groups)
-                for input, dilation, padding in zip(inputs, self.dilations, self.paddings)
+                F.conv2d(
+                    output,
+                    self.weight,
+                    self.bias,
+                    stride,
+                    padding,
+                    dilation,
+                    self.groups,
+                )
             ]
         else:
             outputs = [
