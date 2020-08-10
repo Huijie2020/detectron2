@@ -170,7 +170,8 @@ def build_trident_resnet_backbone(cfg, input_shape):
     # fmt: on
     assert res5_dilation in {1, 2}, "res5_dilation cannot be {}.".format(res5_dilation)
 
-    num_blocks_per_stage = {50: [3, 4, 6, 3], 101: [3, 4, 23, 3], 152: [3, 8, 36, 3]}[depth]
+    ##num_blocks_per_stage = {50: [3, 4, 6, 3], 101: [3, 4, 23, 3], 152: [3, 8, 36, 3]}[depth]
+    num_blocks_per_stage = {50: [3, 1, 6, 3], 101: [3, 4, 23, 3], 152: [3, 8, 36, 3]}[depth]
 
     stages = []
 
@@ -181,8 +182,8 @@ def build_trident_resnet_backbone(cfg, input_shape):
     max_stage_idx = max(out_stage_idx)
     for idx, stage_idx in enumerate(range(2, max_stage_idx + 1)):
         dilation = res5_dilation if stage_idx == 5 else 1
-        first_stride = 1 if idx == 0 or (stage_idx == 5 and dilation == 2) else 2
-        ## first_stride = 1 if idx == 0 or (stage_idx == 5) else 2
+        ##first_stride = 1 if idx == 0 or (stage_idx == 5 and dilation == 2) else 2
+        first_stride = 1 if idx == 0 or (stage_idx == 3) else 2
         stage_kargs = {
             "num_blocks": num_blocks_per_stage[idx],
             "first_stride": first_stride,
