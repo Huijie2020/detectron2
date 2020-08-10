@@ -16,7 +16,7 @@ MODEL:
     NUM_BRANCH: 3
     BRANCH_DILATIONS: [0.5, 1, 2]
     TEST_BRANCH_IDX: 1
-    TRIDENT_STAGE: "res4"
+    TRIDENT_STAGE: "res3"
   WEIGHTS: "modelzoo/R-50-GN.pkl"
 DATASETS:
 #  TRAIN: ("coco_2017_train",)
