@@ -38,6 +38,7 @@ from detectron2.evaluation import (
     verify_results,
 )
 from detectron2.modeling import GeneralizedRCNNWithTTA
+from detectron2.data.datasets import register_coco_instances
 
 
 class Trainer(DefaultTrainer):
@@ -120,6 +121,12 @@ def setup(args):
     """
     Create configs and perform basic setups.
     """
+    register_coco_instances("ued_trainval", {},
+                            "datasets/ued/annotations_json/trainval.json",
+                            "datasets/ued/trainval")
+    register_coco_instances("ued_test", {},
+                            "datasets/ued/annotations_json/test.json",
+                            "datasets/ued/testbackground")
     cfg = get_cfg()
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
