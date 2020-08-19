@@ -1,0 +1,17 @@
+_BASE_: "Base-TridentNet-Fast-C4_2branch_7stride1_giou.yaml"
+MODEL:
+  WEIGHTS: ""
+  MASK_ON: False
+  RESNETS:
+    DEPTH: 50
+    NORM: "GN"
+    RES2_OUT_CHANNELS: 128
+    STEM_OUT_CHANNELS: 32
+    WIDTH_PER_GROUP: 32
+  BACKBONE:
+    FREEZE_AT: 0
+  RPN:
+    BBOX_REG_LOSS_TYPE: "giou"
+  ROI_BOX_HEAD:
+    NORM: "GN"
+    BBOX_REG_LOSS_TYPE: "giou"
