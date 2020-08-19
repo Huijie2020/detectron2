@@ -3,7 +3,8 @@ import fvcore.nn.weight_init as weight_init
 import torch
 import torch.nn.functional as F
 
-from detectron2.layers import Conv2d, FrozenBatchNorm2d, get_norm
+# from detectron2.layers import Conv2d, FrozenBatchNorm2d, get_norm
+from detectron2.layers import Conv2d, FrozenBatchNorm2d, get_norm, CNNBlockBase
 from detectron2.modeling import BACKBONE_REGISTRY, ResNet, ResNetBlockBase, make_stage
 from detectron2.modeling.backbone.resnet import BasicStem, BottleneckBlock, DeformBottleneckBlock
 
@@ -128,6 +129,53 @@ def make_trident_stage(block_class, num_blocks, first_stride, **kwargs):
     return blocks
 
 
+class BasicStemStride1(CNNBlockBase):
+    """
+    The standard ResNet stem (layers before the first residual block).
+    """
+
+    def __init__(self, in_channels, out_channels, norm="BN"):
+        """
+        Args:
+            norm (str or callable): norm after the first conv layer.
+                See :func:`layers.get_norm` for supported format.
+        """
+        super().__init__(in_channels, out_channels, 4)
+        self.in_channels = in_channels
+        self.conv1 = Conv2d(
+            in_channels = 3,
+            out_channels = 32,
+            ##kernel_size=7,
+            kernel_size=3,
+            ##stride=2,
+            stride=1,
+            ##padding=3,
+            padding=1,
+            bias=False,
+            norm=get_norm(norm, out_channels),
+        )
+        self.conv2 = Conv2d(
+            in_channels=32,
+            out_channels=32,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+            bias=False,
+            norm=get_norm(norm, out_channels),
+        )
+        for layer in [self.conv1, self.conv2]:
+            weight_init.c2_msra_fill(layer)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv2(x)
+        x = F.relu_(x)
+        x = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
+        return x
+
+
+
 @BACKBONE_REGISTRY.register()
 def build_trident_resnet_backbone(cfg, input_shape):
     """
@@ -138,7 +186,7 @@ def build_trident_resnet_backbone(cfg, input_shape):
     """
     # need registration of new blocks/stems?
     norm = cfg.MODEL.RESNETS.NORM
-    stem = BasicStem(
+    stem = BasicStemStride1(
         in_channels=input_shape.channels,
         out_channels=cfg.MODEL.RESNETS.STEM_OUT_CHANNELS,
         norm=norm,
