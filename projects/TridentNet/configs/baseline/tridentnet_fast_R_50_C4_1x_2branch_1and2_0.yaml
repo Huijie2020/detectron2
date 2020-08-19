@@ -1,4 +1,4 @@
-_BASE_: "Base-TridentNet-Fast-C4_2branch_1&2_1.yaml"
+_BASE_: "Base-TridentNet-Fast-C4_2branch_1and2_0.yaml"
 MODEL:
   WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
   MASK_ON: False
