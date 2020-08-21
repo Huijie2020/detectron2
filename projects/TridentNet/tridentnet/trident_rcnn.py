@@ -93,7 +93,8 @@ class Res5ROIHeadsHalf(ROIHeads):
     def _build_res5_block(self, cfg):
         # fmt: off
         ## stage_channel_factor = 2 ** 3  # res5 is 8x res2
-        stage_channel_factor = 2  # res5 is 8x res2
+        # stage_channel_factor = 2  # res5 is 8x res2
+        stage_channel_factor = 2 ** 2 # res5 is 8x res2
         num_groups           = cfg.MODEL.RESNETS.NUM_GROUPS
         width_per_group      = cfg.MODEL.RESNETS.WIDTH_PER_GROUP
         bottleneck_channels  = num_groups * width_per_group * stage_channel_factor
