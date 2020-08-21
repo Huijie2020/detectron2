@@ -217,8 +217,10 @@ def build_trident_resnet_backbone(cfg, input_shape):
         ## chenge to half size channel
         if stage_idx == 2:
             in_channels = out_channels
-            out_channels = out_channels // 2
-            bottleneck_channels = bottleneck_channels // 2
+            # out_channels = out_channels // 2
+            # bottleneck_channels = bottleneck_channels // 2
+            out_channels = out_channels
+            bottleneck_channels = bottleneck_channels
         else:
             in_channels = out_channels
             out_channels *= 2
