@@ -93,6 +93,12 @@ class TridentBottleneckBlock(ResNetBlockBase):
                 weight_init.c2_msra_fill(layer)
 
     def forward(self, x):
+
+        if self.shortcut is not None:
+            shortcut = self.shortcut(x)
+        else:
+            shortcut = x
+
         num_branch = self.num_branch if self.training or self.test_branch_idx == -1 else 1
         if not isinstance(x, list):
             x = [x] * num_branch
@@ -104,15 +110,15 @@ class TridentBottleneckBlock(ResNetBlockBase):
 
         out = [self.conv3(b) for b in out]
 
-        if self.shortcut is not None:
-            shortcut = [self.shortcut(b) for b in x]
-        else:
-            shortcut = x
+        out = sum(out)
 
-        out = [out_b + shortcut_b for out_b, shortcut_b in zip(out, shortcut)]
-        out = [F.relu_(b) for b in out]
-        if self.concat_output:
-            out = torch.cat(out)
+        out += shortcut
+        out = F.relu_(out)
+
+        # out = [out_b + shortcut_b for out_b, shortcut_b in zip(out, shortcut)]
+        # out = [F.relu_(b) for b in out]
+        # if self.concat_output:
+        #     out = torch.cat(out)
         return out
 
 
