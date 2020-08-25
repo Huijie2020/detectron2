@@ -6,14 +6,16 @@ from torch import nn
 
 from detectron2.layers import Conv2d, ShapeSpec, get_norm
 
-from .backbone import Backbone
-from .build import BACKBONE_REGISTRY
-from .resnet import build_resnet_backbone
+from detectron2.modeling.backbone import Backbone
+# from .build import BACKBONE_REGISTRY
+# from .resnet import build_resnet_backbone
+from detectron2.modeling import BACKBONE_REGISTRY
+from .trident_backbone import build_trident_resnet_backbone
 
-__all__ = ["build_resnet_fpn_backbone", "build_retinanet_resnet_fpn_backbone", "FPN"]
+# __all__ = ["build_resnet_fpn_backbone", "build_retinanet_resnet_fpn_backbone", "FPN"]
+__all__ = ["build_trident_resnet_fpn_backbone","trident_FPN"]
 
-
-class FPN(Backbone):
+class trident_FPN(Backbone):
     """
     This module implements :paper:`FPN`.
     It creates pyramid features built on top of some input feature maps.
@@ -45,7 +47,7 @@ class FPN(Backbone):
                 ones. It can be "sum" (default), which sums up element-wise; or "avg",
                 which takes the element-wise mean of the two.
         """
-        super(FPN, self).__init__()
+        super(trident_FPN, self).__init__()
         assert isinstance(bottom_up, Backbone)
 
         # Feature map strides and channels from the bottom up network (e.g. ResNet)
@@ -53,7 +55,7 @@ class FPN(Backbone):
         strides = [input_shapes[f].stride for f in in_features]
         in_channels_per_feature = [input_shapes[f].channels for f in in_features]
 
-        _assert_strides_are_log2_contiguous(strides)
+        #_assert_strides_are_log2_contiguous(strides)
         lateral_convs = []
         output_convs = []
 
@@ -76,7 +78,7 @@ class FPN(Backbone):
             )
             weight_init.c2_xavier_fill(lateral_conv)
             weight_init.c2_xavier_fill(output_conv)
-            stage = int(math.log2(strides[idx]))
+            stage = int(math.log2(strides[idx]) + 1)
             self.add_module("fpn_lateral{}".format(stage), lateral_conv)
             self.add_module("fpn_output{}".format(stage), output_conv)
 
@@ -90,7 +92,7 @@ class FPN(Backbone):
         self.in_features = in_features
         self.bottom_up = bottom_up
         # Return feature names are "p<stage>", like ["p2", "p3", ..., "p6"]
-        self._out_feature_strides = {"p{}".format(int(math.log2(s))): s for s in strides}
+        self._out_feature_strides = {"p{}".format(int(math.log2(s) + 1)): s for s in strides}
         # top block output feature maps.
         if self.top_block is not None:
             for s in range(stage, stage + self.top_block.num_levels):
@@ -152,54 +154,54 @@ class FPN(Backbone):
         }
 
 
-def _assert_strides_are_log2_contiguous(strides):
-    """
-    Assert that each stride is 2x times its preceding stride, i.e. "contiguous in log2".
-    """
-    for i, stride in enumerate(strides[1:], 1):
-        assert stride == 2 * strides[i - 1], "Strides {} {} are not log2 contiguous".format(
-            stride, strides[i - 1]
-        )
+# def _assert_strides_are_log2_contiguous(strides):
+#     """
+#     Assert that each stride is 2x times its preceding stride, i.e. "contiguous in log2".
+#     """
+#     for i, stride in enumerate(strides[1:], 1):
+#         assert stride == 2 * strides[i - 1], "Strides {} {} are not log2 contiguous".format(
+#             stride, strides[i - 1]
+#        )
 
 
-class LastLevelMaxPool(nn.Module):
-    """
-    This module is used in the original FPN to generate a downsampled
-    P6 feature from P5.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.num_levels = 1
-        self.in_feature = "p5"
-
-    def forward(self, x):
-        return [F.max_pool2d(x, kernel_size=1, stride=2, padding=0)]
-
-
-class LastLevelP6P7(nn.Module):
-    """
-    This module is used in RetinaNet to generate extra layers, P6 and P7 from
-    C5 feature.
-    """
-
-    def __init__(self, in_channels, out_channels, in_feature="res5"):
-        super().__init__()
-        self.num_levels = 2
-        self.in_feature = in_feature
-        self.p6 = nn.Conv2d(in_channels, out_channels, 3, 2, 1)
-        self.p7 = nn.Conv2d(out_channels, out_channels, 3, 2, 1)
-        for module in [self.p6, self.p7]:
-            weight_init.c2_xavier_fill(module)
-
-    def forward(self, c5):
-        p6 = self.p6(c5)
-        p7 = self.p7(F.relu(p6))
-        return [p6, p7]
+# class LastLevelMaxPool(nn.Module):
+#     """
+#     This module is used in the original FPN to generate a downsampled
+#     P6 feature from P5.
+#     """
+#
+#     def __init__(self):
+#         super().__init__()
+#         self.num_levels = 1
+#         self.in_feature = "p5"
+#
+#     def forward(self, x):
+#         return [F.max_pool2d(x, kernel_size=1, stride=2, padding=0)]
+#
+#
+# class LastLevelP6P7(nn.Module):
+#     """
+#     This module is used in RetinaNet to generate extra layers, P6 and P7 from
+#     C5 feature.
+#     """
+#
+#     def __init__(self, in_channels, out_channels, in_feature="res5"):
+#         super().__init__()
+#         self.num_levels = 2
+#         self.in_feature = in_feature
+#         self.p6 = nn.Conv2d(in_channels, out_channels, 3, 2, 1)
+#         self.p7 = nn.Conv2d(out_channels, out_channels, 3, 2, 1)
+#         for module in [self.p6, self.p7]:
+#             weight_init.c2_xavier_fill(module)
+#
+#     def forward(self, c5):
+#         p6 = self.p6(c5)
+#         p7 = self.p7(F.relu(p6))
+#         return [p6, p7]
 
 
 @BACKBONE_REGISTRY.register()
-def build_resnet_fpn_backbone(cfg, input_shape: ShapeSpec):
+def build_trident_resnet_fpn_backbone(cfg, input_shape: ShapeSpec):
     """
     Args:
         cfg: a detectron2 CfgNode
@@ -207,39 +209,41 @@ def build_resnet_fpn_backbone(cfg, input_shape: ShapeSpec):
     Returns:
         backbone (Backbone): backbone module, must be a subclass of :class:`Backbone`.
     """
-    bottom_up = build_resnet_backbone(cfg, input_shape)
+    # bottom_up = build_resnet_backbone(cfg, input_shape)
+    bottom_up = build_trident_resnet_backbone(cfg, input_shape)
     in_features = cfg.MODEL.FPN.IN_FEATURES
     out_channels = cfg.MODEL.FPN.OUT_CHANNELS
-    backbone = FPN(
+    backbone = trident_FPN(
         bottom_up=bottom_up,
         in_features=in_features,
         out_channels=out_channels,
         norm=cfg.MODEL.FPN.NORM,
-        top_block=LastLevelMaxPool(),
+        # top_block=LastLevelMaxPool(),
+        top_block=None,
         fuse_type=cfg.MODEL.FPN.FUSE_TYPE,
     )
     return backbone
 
 
-@BACKBONE_REGISTRY.register()
-def build_retinanet_resnet_fpn_backbone(cfg, input_shape: ShapeSpec):
-    """
-    Args:
-        cfg: a detectron2 CfgNode
-
-    Returns:
-        backbone (Backbone): backbone module, must be a subclass of :class:`Backbone`.
-    """
-    bottom_up = build_resnet_backbone(cfg, input_shape)
-    in_features = cfg.MODEL.FPN.IN_FEATURES
-    out_channels = cfg.MODEL.FPN.OUT_CHANNELS
-    in_channels_p6p7 = bottom_up.output_shape()["res5"].channels
-    backbone = FPN(
-        bottom_up=bottom_up,
-        in_features=in_features,
-        out_channels=out_channels,
-        norm=cfg.MODEL.FPN.NORM,
-        top_block=LastLevelP6P7(in_channels_p6p7, out_channels),
-        fuse_type=cfg.MODEL.FPN.FUSE_TYPE,
-    )
-    return backbone
+# @BACKBONE_REGISTRY.register()
+# def build_retinanet_resnet_fpn_backbone(cfg, input_shape: ShapeSpec):
+#     """
+#     Args:
+#         cfg: a detectron2 CfgNode
+#
+#     Returns:
+#         backbone (Backbone): backbone module, must be a subclass of :class:`Backbone`.
+#     """
+#     bottom_up = build_resnet_backbone(cfg, input_shape)
+#     in_features = cfg.MODEL.FPN.IN_FEATURES
+#     out_channels = cfg.MODEL.FPN.OUT_CHANNELS
+#     in_channels_p6p7 = bottom_up.output_shape()["res5"].channels
+#     backbone = FPN(
+#         bottom_up=bottom_up,
+#         in_features=in_features,
+#         out_channels=out_channels,
+#         norm=cfg.MODEL.FPN.NORM,
+#         top_block=LastLevelP6P7(in_channels_p6p7, out_channels),
+#         fuse_type=cfg.MODEL.FPN.FUSE_TYPE,
+#     )
+#     return backbone
