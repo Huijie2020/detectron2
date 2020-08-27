@@ -7,3 +7,4 @@ from .trident_backbone import (
 )
 from .trident_rpn import TridentRPN
 from .trident_rcnn import TridentRes5ROIHeads, TridentStandardROIHeads
+from .trident_textboxanchor import TextBoxesppAnchorGenerator
