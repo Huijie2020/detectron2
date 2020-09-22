@@ -15,6 +15,7 @@ from detectron2.engine import DefaultTrainer, default_argument_parser, default_s
 from detectron2.evaluation import COCOEvaluator
 from detectron2.data.datasets import register_coco_instances
 from tridentnet import add_tridentnet_config
+from tridentnet import add_atss_config
 
 
 class Trainer(DefaultTrainer):
@@ -37,6 +38,7 @@ def setup(args):
                             "datasets/ued/testbackground")
     cfg = get_cfg()
     add_tridentnet_config(cfg)
+    add_atss_config(cfg)
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
