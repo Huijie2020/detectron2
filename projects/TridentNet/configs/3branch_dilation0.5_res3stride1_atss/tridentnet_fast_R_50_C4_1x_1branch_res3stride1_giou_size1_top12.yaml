@@ -1,0 +1,12 @@
+_BASE_: "Base-TridentNet-Fast-C4_1branch_res3stride1_giou_size1_top12.yaml"
+MODEL:
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  MASK_ON: False
+  RESNETS:
+    DEPTH: 50
+  BACKBONE:
+    FREEZE_AT: 1
+  RPN:
+    BBOX_REG_LOSS_TYPE: "giou"
+  ROI_BOX_HEAD:
+    BBOX_REG_LOSS_TYPE: "giou"
