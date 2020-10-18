@@ -14,6 +14,7 @@ from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultTrainer, default_argument_parser, default_setup, launch
 from detectron2.evaluation import COCOEvaluator, verify_results
+from detectron2.data.datasets import register_coco_instances
 
 from tensormask import add_tensormask_config
 
@@ -30,6 +31,12 @@ def setup(args):
     """
     Create configs and perform basic setups.
     """
+    register_coco_instances("ued_trainval", {},
+                            "datasets/ued/annotations_json/trainval.json",
+                            "datasets/ued/trainval")
+    register_coco_instances("ued_test", {},
+                            "datasets/ued/annotations_json/test.json",
+                            "datasets/ued/testbackground")
     cfg = get_cfg()
     add_tensormask_config(cfg)
     cfg.merge_from_file(args.config_file)
