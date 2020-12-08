@@ -3,6 +3,8 @@ from detectron2.layers import batched_nms
 from detectron2.modeling import ROI_HEADS_REGISTRY, StandardROIHeads
 from detectron2.modeling.roi_heads.roi_heads import Res5ROIHeads
 from detectron2.structures import Instances
+from detectron2.modeling.backbone.resnet import BottleneckBlock, make_stage
+from torch import nn
 
 
 def merge_branch_instances(instances, num_branch, nms_thresh, topk_per_image):
@@ -56,6 +58,33 @@ class TridentRes5ROIHeads(Res5ROIHeads):
 
         self.num_branch = cfg.MODEL.TRIDENT.NUM_BRANCH
         self.trident_fast = cfg.MODEL.TRIDENT.TEST_BRANCH_IDX != -1
+
+    def _build_res5_block(self, cfg):
+        # fmt: off
+        stage_channel_factor = 2 ** 3  # res5 is 8x res2
+        num_groups           = cfg.MODEL.RESNETS.NUM_GROUPS
+        width_per_group      = cfg.MODEL.RESNETS.WIDTH_PER_GROUP
+        bottleneck_channels  = num_groups * width_per_group * stage_channel_factor
+        out_channels         = cfg.MODEL.RESNETS.RES2_OUT_CHANNELS * stage_channel_factor
+        stride_in_1x1        = cfg.MODEL.RESNETS.STRIDE_IN_1X1
+        norm                 = cfg.MODEL.RESNETS.NORM
+        assert not cfg.MODEL.RESNETS.DEFORM_ON_PER_STAGE[-1], \
+            "Deformable conv is not yet supported in res5 head."
+        # fmt: on
+
+        blocks = make_stage(
+            BottleneckBlock,
+            3,
+            ##first_stride=2,
+            first_stride=1,
+            in_channels=out_channels // 2,
+            bottleneck_channels=bottleneck_channels,
+            out_channels=out_channels,
+            num_groups=num_groups,
+            norm=norm,
+            stride_in_1x1=stride_in_1x1,
+        )
+        return nn.Sequential(*blocks), out_channels
 
     def forward(self, images, features, proposals, targets=None):
         """
