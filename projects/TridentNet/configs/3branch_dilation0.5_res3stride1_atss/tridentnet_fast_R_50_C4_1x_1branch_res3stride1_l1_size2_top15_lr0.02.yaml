@@ -1,0 +1,8 @@
+_BASE_: "Base-TridentNet-Fast-C4_1branch_res3stride1_l1_size2_top15_lr0.02.yaml"
+MODEL:
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  MASK_ON: False
+  RESNETS:
+    DEPTH: 50
+  BACKBONE:
+    FREEZE_AT: 1
