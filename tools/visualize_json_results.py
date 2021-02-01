@@ -48,9 +48,12 @@ if __name__ == "__main__":
     parser.add_argument("--conf-threshold", default=0.5, type=float, help="confidence threshold")
     args = parser.parse_args()
     from detectron2.data.datasets import register_coco_instances
+    register_coco_instances("ued_trainval", {},
+                            "/home/huijie/projects/detectron2/datasets/ued/annotations_json/trainval.json",
+                            "/home/huijie/projects/detectron2/datasets/ued/trainval")
     register_coco_instances("ued_test", {},
-                            "/home/pengyue/Documents/2020Project/SmallObjectDetection/detectron2/datasets/ued/annotations_json/test.json",
-                            "/home/pengyue/Documents/2020Project/SmallObjectDetection/detectron2/datasets/ued/testbackground")
+                            "/home/huijie/projects/detectron2/datasets/ued/annotations_json/test.json",
+                            "/home/huijie/projects/detectron2/datasets/ued/testbackground")
     logger = setup_logger()
 
     with PathManager.open(args.input, "r") as f:
