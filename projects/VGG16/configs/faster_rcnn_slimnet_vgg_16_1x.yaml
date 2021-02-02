@@ -1,0 +1,4 @@
+_BASE_: "Base-RCNN-slimnet_vgg_16.yaml"
+MODEL:
+  MASK_ON: False
+  WEIGHTS: "https://download.pytorch.org/models/vgg16-397923af.pth"
