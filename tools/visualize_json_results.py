@@ -49,8 +49,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     from detectron2.data.datasets import register_coco_instances
     register_coco_instances("ued_test", {},
-                            "/home/pengyue/Documents/2020Project/SmallObjectDetection/detectron2/datasets/ued/annotations_json/test.json",
-                            "/home/pengyue/Documents/2020Project/SmallObjectDetection/detectron2/datasets/ued/testbackground")
+                            "datasets/ued/annotations_json/test.json",
+                            "datasets/ued/testbackground")
     logger = setup_logger()
 
     with PathManager.open(args.input, "r") as f:
